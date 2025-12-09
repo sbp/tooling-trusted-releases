@@ -31,6 +31,7 @@ jobs:
         uses: github/codeql-action/init@267c4672a565967e4531438f2498370de5e8a98d
         with:
           languages: ${{ matrix.language }}
+          packs: codeql/python-suppression-queries
           queries: security-extended
           config-file: ./codeql-config.yml
 
