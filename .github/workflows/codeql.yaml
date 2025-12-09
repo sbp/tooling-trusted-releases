@@ -20,7 +20,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ "python", "actions" ]
+        include:
+          - language: python
+            suppression_pack: +codeql/python-queries:AlertSuppression.ql
+          - language: actions
+            suppression_pack: ""
 
     steps:
       - name: Checkout repository
@@ -33,7 +37,7 @@ jobs:
         with:
           languages: ${{ matrix.language }}
           queries: security-extended
-          packs: +codeql/python-all:AlertSuppression.ql
+          packs: ${{ matrix.suppression_pack }}
           config-file: ./codeql-config.yml
 
       - name: Perform CodeQL Analysis
@@ -42,6 +46,19 @@ jobs:
         with:
           category: "/language:${{ matrix.language }}"
           output: sarif-results
+
+      - name: Inspect suppressions in SARIF (debug)
+        run: |
+          python - <<'PY'
+          import json, pathlib
+          p = pathlib.Path("sarif-results") / "${{ matrix.language }}.sarif"
+          data = json.loads(p.read_text())
+          results = data["runs"][0].get("results", [])
+          suppressed = [r for r in results if r.get("suppressions")]
+          print(f"SARIF file: {p}")
+          print(f"Total results: {len(results)}")
+          print(f"Suppressed results: {len(suppressed)}")
+          PY
 
       - name: Dismiss alerts
         if: github.ref == 'refs/heads/main'
