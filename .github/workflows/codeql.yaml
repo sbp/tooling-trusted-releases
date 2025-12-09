@@ -33,6 +33,7 @@ jobs:
         with:
           languages: ${{ matrix.language }}
           queries: security-extended
+          packs: +codeql/python-all:AlertSuppression.ql
           config-file: ./codeql-config.yml
 
       - name: Perform CodeQL Analysis
