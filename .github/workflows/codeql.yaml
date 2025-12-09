@@ -14,6 +14,7 @@ jobs:
     permissions:
       actions: read
       contents: read
+      packages: read
       security-events: write
 
     strategy:
@@ -32,13 +33,14 @@ jobs:
         with:
           languages: ${{ matrix.language }}
           queries: security-extended
-          packs: codeql/python-queries:AlertSuppression.ql
           config-file: ./codeql-config.yml
 
       - name: Perform CodeQL Analysis
+        id: analyze
         uses: github/codeql-action/analyze@267c4672a565967e4531438f2498370de5e8a98d
         with:
           category: "/language:${{ matrix.language }}"
+          output: sarif-results
 
       - name: Dismiss alerts
         if: github.ref == 'refs/heads/main'
